@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+#
+# boilerplate-bash
+#
+# Boilerplate for creating simple bash scripts with basic strictness
+# checks, help features, debug printing and basic option handling.
+#
+# Usage:
+#   boilerplate-bash [--option <argument>]
+#
+# Options:
+#   -h --help                     Display this help information
+#   -x --option-x                 An option named 'x'
+#   -o                            Short option with argument
+#   --long-option-with-argument   Long option with argument
+#   --debug                       Display debug information
+#
+# https://github.com/bramkok/boilerplate-bash
+
+### Configuration
+#####################################################################
+
+set -eu -o pipefail
+# shellcheck disable=SC2034
+DEFAULT_IFS="${IFS}"
+SAFER_IFS=$'\n\t'
+IFS="${SAFER_IFS}"
+_ME=$(basename "${0}") # Program basename
+
+### Debug/Exit/Help
+#####################################################################
+
+__DEBUG_COUNTER=0
+_debug() {
+  if [[ "${_USE_DEBUG:-"0"}" -eq 1 ]]; then
+    __DEBUG_COUNTER=$((__DEBUG_COUNTER+1))
+    printf "%s " "${__DEBUG_COUNTER}"
+    "${@}"
+    printf "――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――\n"
+  fi
+}
+
+debug() {
+  _debug echo "${@}"
+}
+
+_die() {
+  "${@}" 1>&2
+  exit 1
+}
+
+die() {
+  _die echo "${@}"
+}
+
+_print_help() {
+  cat <<HEREDOC
+
+boilerplate-bash
+
+Boilerplate for creating simple bash scripts with basic strictness
+checks, help features, debug printing and basic option handling.
+
+Usage:
+  ${_ME} [--option <argument>]
+
+Options:
+  -h --help                     Display this help information
+  -x --option-x                 An option named 'x'
+  -o                            Short option with argument
+  --long-option-with-argument   Long option with argument
+  --debug                       Display debug information
+
+HEREDOC
+}
+
+### Options
+#####################################################################
+
+# Short options followed by a ':' require an argument
+optstring=xo:h
+
+unset options
+while ((${#})) # While the number of arguments is greater than 0
+do
+  case ${1} in
+    -[!-]?*) # Option type: -ab
+      for ((i=1; i<${#1}; i++))
+      do
+        c=${1:i:1} # Extract 1 character from position 'i'
+        options+=("-${c}") # Add current char to options
+        # If the option requires an argument, and it's not the last char
+        # make the rest of the string its argument
+        if [[ ${optstring} = *"${c}:"* && ${1:i+1} ]]; then
+          options+=("${1:i+1}")
+          break
+        fi
+      done
+      ;;
+    --?*=*) # Option type: --foo=bar, split on first '='
+      options+=("${1%%=*}" "${1#*=}")
+      ;;
+    --) # End of options
+      options+=(--endopts)
+      shift
+      options+=("${@}")
+      break
+      ;;
+    *) # Else, nothing special
+      options+=("${1}")
+      ;;
+  esac
+  shift
+done
+
+set -- "${options[@]:-}"
+unset options
+
+# Option variables
+_PRINT_HELP=0
+_USE_DEBUG=0
+_OPTION_X=0
+_SHORT_OPTION_WITH_PARAMETER=""
+_LONG_OPTION_WITH_PARAMETER=""
+
+_require_argument() {
+  local _option="${1:-}"
+  local _argument="${2:-}"
+  if [[ -z "${_argument}" ]] || [[ "${_argument}" =~ ^- ]]; then
+    _die printf "Option requires a argument: %s\n" "${_option}"
+  fi
+}
+
+while [ ${#} -gt 0 ]
+do
+  __option="${1:-}"
+  __maybe_param="${2:-}"
+  case "${__option}" in
+    -h|--help)
+      _PRINT_HELP=1
+      ;;
+    --debug)
+      _USE_DEBUG=1
+      ;;
+    -x|--option-x)
+      _OPTION_X=1
+      ;;
+    -o)
+      _require_argument "${__option}" "${__maybe_param}"
+      _SHORT_OPTION_WITH_PARAMETER="${__maybe_param}"
+       shift
+      ;;
+    --long-option-with-argument)
+      _require_argument "${__option}" "${__maybe_param}"
+      _LONG_OPTION_WITH_PARAMETER="${__maybe_param}"
+      shift
+      ;;
+    --endopts)
+      break
+      ;;
+    -*)
+      _die printf "Unexpected option: %s\n" "${__option}"
+      ;;
+  esac
+  shift
+done
+
+### Functions
+#####################################################################
+
+_example() {
+  _debug printf ">> Performing operation...\n"
+
+  if ((_OPTION_X)); then
+    printf "Perform a simple operation with --option-x.\n"
+  else
+    printf "Perform a simple operation.\n"
+  fi
+  if [[ -n "${_SHORT_OPTION_WITH_PARAMETER}" ]]; then
+    printf "Short option parameter: %s\n" "${_SHORT_OPTION_WITH_PARAMETER}"
+  fi
+  if [[ -n "${_LONG_OPTION_WITH_PARAMETER}" ]]; then
+    printf "Long option parameter: %s\n" "${_LONG_OPTION_WITH_PARAMETER}"
+  fi
+}
+
+### Runtime
+#####################################################################
+
+_main() {
+  if ((_PRINT_HELP)); then
+    _print_help
+  else
+    _example "${@}"
+  fi
+}
+
+_main "${@:-}" # Call `_main` after everything has been defined
