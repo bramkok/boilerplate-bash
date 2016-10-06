@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 #
-# boilerplate-bash
+# __project_name__
 #
-# Boilerplate for creating simple bash scripts with basic strictness
-# checks, help features, debug printing and basic option handling.
+# __project_description__
 #
 # Usage:
-#   boilerplate-bash [--option <argument>]
+#   __project_name__ [--option <argument>]
 #
 # Options:
-#   -h --help                     Display this help information
-#   -x --option-x                 An option named 'x'
-#   -o                            Short option with argument
-#   --long-option-with-argument   Long option with argument
-#   --debug                       Display debug information
+#   -h --help                     Display this help information.
+#   -x --option-x                 An option named 'x'.
+#   -o                            Short option with argument.
+#   --long-option-with-argument   Long option with argument.
+#   --debug                       Display debug information.
 #
-# https://github.com/bramkok/boilerplate-bash
+# https://github.com/__project_username__/__project_name__
 
 ### Configuration
 #####################################################################
@@ -56,20 +55,19 @@ die() {
 _print_help() {
   cat <<HEREDOC
 
-boilerplate-bash
+__project_name__
 
-Boilerplate for creating simple bash scripts with basic strictness
-checks, help features, debug printing and basic option handling.
+__project_description__
 
 Usage:
   ${_ME} [--option <argument>]
 
 Options:
-  -h --help                     Display this help information
-  -x --option-x                 An option named 'x'
-  -o                            Short option with argument
-  --long-option-with-argument   Long option with argument
-  --debug                       Display debug information
+  -h --help                     Display this help information.
+  -x --option-x                 An option named 'x'.
+  -o                            Short option with argument.
+  --long-option-with-argument   Long option with argument.
+  --debug                       Display debug information.
 
 HEREDOC
 }
